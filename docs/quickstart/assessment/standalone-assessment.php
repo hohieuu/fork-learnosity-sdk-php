@@ -38,15 +38,20 @@
         // Human-friendly display name to be shown in reporting.
         'name'           => 'Items API Quickstart', 
         // Can be set to `initial, `resume` or `review`. Optional. Default = `initial`.
-        'state'          => 'initial'
+        'state'          => 'initial',
+        'config' => [
+            'title' => $_SERVER['HTTP_TOKEN'],
+            'description'=> 'Test'
+        ]
     ];
 
     // Public & private security keys required to access Learnosity APIs and
     // data. These keys grant access to Learnosity's public demos account, 
     // loaded from a configuration file on line 13.
     // Learnosity will provide keys for your own private account.
-    $consumerKey = $config['consumerKey'];
-    $consumerSecret = $config['consumerSecret'];
+    $consumerKey = $_SERVER['HTTP_CONSUMER_KEY'];
+    $consumerSecret = $_SERVER['HTTP_CONSUMER_SECRET'];
+
 
     // Parameters used to create security authorization.
     $security = [
@@ -68,20 +73,40 @@
 <!DOCTYPE html>
 <html>
     <head><link rel="stylesheet" type="text/css" href="../css/style.css"></head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <body>
         <h1>Standalone Assessment Example</h1>
 
         <!-- Items API will render the assessment app into this div. -->
         <div id="learnosity_assess"></div>
+        
 
         <!-- Load the Items API library. -->
         <script src="https://items.learnosity.com/?v2021.2.LTS"></script>
 
         <!-- Initiate Items API assessment rendering, using the JSON blob of signed params. -->
         <script>
+              var callbacks = {
+            readyListener: function () {
+                window.ManabieChannel.postMessage("Items API has successfully initialized.");
+            },
+            errorListener: function (err) {
+                window.ManabieChannel.postMessage(err);
+            },
+            dataListener: function(data){
+                window.ManabieChannel.postMessage(data)
+            },
+            };
+
             var itemsApp = LearnosityItems.init(
-                <?php echo $initOptions ?>
+                <?php echo $initOptions ?>,
+                callbacks
             );
+
+            itemsApp.on("test:finished:submit", function(itemIndex) {
+                window.ManabieChannel.postMessage("test:finished:submit");
+            });
         </script>
     </body>
 </html>
